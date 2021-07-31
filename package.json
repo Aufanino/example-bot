@@ -1,0 +1,37 @@
+{
+  "name": "wa-bot",
+  "version": "1.0.0",
+  "description": "WhatsApp Sticker Maker",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "keywords": [
+    "bot"
+  ],
+  "author": "aqulzz",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "@adiwajshing/baileys": "github:adiwajshing/baileys",
+    "axios": "^0.21.1",
+    "cheerio": "^1.0.0-rc.10",
+    "fluent-ffmpeg": "^2.1.2",
+    "form-data": "^4.0.0",
+    "node-cron": "^3.0.0",
+    "node-fetch": "^2.6.1",
+    "path": "^0.12.7"
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zennn08/WA-BOT.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zennn08/WA-BOT/issues"
+  },
+  "homepage": "https://github.com/zennn08/WA-BOT#readme"
+}
