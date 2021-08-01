@@ -42,7 +42,6 @@ This script is open to anyone! If you want to add commands, please contribute / 
 git clone https://github.com/zennn08/example-bot.git
 cd example-bot
 npm install
-node main
 ```
 ## For Termux
 ```bash
@@ -53,6 +52,10 @@ cd example-bot
 npm install
 ```
 
+# Run bot
+```cmd
+node index
+```
 ## For VPS
 ```bash
 apt install nodejs git ffmpeg libwebp
