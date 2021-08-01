@@ -52,16 +52,16 @@ cd example-bot
 npm install
 ```
 
-# Run bot
-```cmd
-node index
-```
 ## For VPS
 ```bash
 apt install nodejs git ffmpeg libwebp
 git clone https://github.com/zennn08/example-bot.git
 cd example-bot
 npm install
+```
+# Run bot
+```cmd
+node index
 ```
 
 ## Edit file
