@@ -120,6 +120,10 @@ module.exports = {
                 tmt += `${prefix}tourl\n`
                 tmt += `${prefix}pinterest\n`
                 tmt += `${prefix}igstalk\n`
+                tmt += `${prefix}igdl\n`
+                tmt += `${prefix}flower\n`
+                tmt += `${prefix}write-text\n`
+                tmt += `${prefix}shadow-text\n`
                 conn.reply(from, tmt, msg)
             }
             break
@@ -312,6 +316,40 @@ module.exports = {
                         conn.reply(from, 'User tidak ditemukan', msg)
                     })
             }
+            break
+            case prefix + 'instagram':
+            case prefix + 'ig':
+            case prefix + 'igdl': {
+                if (!q) return conn.reply(from, `Penggunaan ${command} link ig`, msg)
+                if (!isUrl(args[1]) && !args[1].includes('instagram.com')) return conn.reply(from, 'Harap berikan link yang benar', msg)
+                await conn.reply(from, global.db.mess.wait, msg)
+                await api.igdl(args[1])
+                    .then(res => {
+                        let post = res.post
+                        for (let i = 0; i < post.length; i++) {
+                            let cp = i == 0 ? res.caption : ''
+                            if (post[i].type == 'image') conn.sendImage(from, post[i].url, cp, msg)
+                            else conn.sendVideo(from, post[i].url, cp, msg)
+                        }
+                    })
+                    .catch(err => {
+                        console.log(err)
+                        conn.reply(from, "Error, mungkin private", msg)
+                    })
+            }
+            break
+            case prefix + 'flower':
+            case prefix + 'shadow-text':
+            case prefix + 'write-text': {
+                if (!q) return conn.reply(from, `Penggunaan ${command} text`, msg)
+                await api.photooxy(q, command.slice(1))
+                    .then(res => conn.sendImage(from, res, res, msg))
+                    .catch(err => {
+                        console.log(err)
+                        conn.reply(from, global.db.mess.error.api, msg)
+                    })
+            }
+            break
             }
         } catch (err) {
             console.log(err)
