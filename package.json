@@ -1,7 +1,7 @@
 {
-  "name": "wa-bot",
+  "name": "example-bot",
   "version": "1.0.0",
-  "description": "WhatsApp Sticker Maker",
+  "description": "Example bot for my REST-API",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -15,7 +15,10 @@
   "dependencies": {
     "@adiwajshing/baileys": "github:adiwajshing/baileys",
     "axios": "^0.21.1",
+    "chalk": "^4.1.2",
     "cheerio": "^1.0.0-rc.10",
+    "figlet": "^1.5.0",
+    "file-type": "^9.0.0",
     "fluent-ffmpeg": "^2.1.2",
     "form-data": "^4.0.0",
     "node-cron": "^3.0.0",
@@ -25,13 +28,13 @@
   "directories": {
     "lib": "lib"
   },
-  "devDependencies": {},
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zennn08/WA-BOT.git"
+    "url": "git+https://github.com/zennn08/example-bot.git"
   },
   "bugs": {
-    "url": "https://github.com/zennn08/WA-BOT/issues"
+    "url": "https://github.com/zennn08/example-bot/issues"
   },
-  "homepage": "https://github.com/zennn08/WA-BOT#readme"
+  "homepage": "https://github.com/zennn08/example-bot#readme",
+  "devDependencies": {}
 }

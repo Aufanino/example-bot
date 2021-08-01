@@ -1,8 +1,21 @@
+/*
+Hanya example untuk https://justaqul.xyz
+Mau recode? ya terserah asal jangan ganti WaterMark
+Mau jual? jangan deh
+Dapetin apikey? Regist di https://justaqul.xyz
+Sorry sc nya banyak kekurangan
+*/
 "use strict";
 const {
     MessageType
 } = require("@adiwajshing/baileys");
+const {
+    default: Axios
+} = require("axios");
 
+const {
+    color
+} = require("../lib/color");
 const func = require("../lib/function");
 const {
     toSticker,
@@ -10,7 +23,6 @@ const {
     webpToMp4,
     toAudio
 } = require("../lib/convert");
-const menu = require("../lib/menu");
 const api = require("../lib/api");
 
 const isUrl = (url) => {
@@ -25,7 +37,7 @@ module.exports = {
         let msg = chat.messages.all()[0]
         try {
             if (!msg.message) return // Mengskip message yang ga ada message
-            func.serialize(this, msg) // biar ez
+            await func.serialize(this, msg) // biar ez
             switch (msg.type) { // Update media
                 case MessageType.image:
                 case MessageType.video:
@@ -45,8 +57,10 @@ module.exports = {
                 from,
                 fromMe,
                 pushname,
-                chats,
-                isBaileys
+                body,
+                isBaileys,
+                userData,
+                groupMetadata
             } = msg
             const {
                 text,
@@ -61,48 +75,50 @@ module.exports = {
                 audio,
                 product
             } = MessageType
-            const args = chats.split(' ')
-            const command = chats.toLowerCase().split(' ')[0] || ''
+            const args = body.split(' ')
+            const command = body.toLowerCase().split(' ')[0] || ''
 
             const prefix = /^[°•π÷×¶∆£¢€¥®™✓_=|~!?#$%^&.+-,\/\\©^]/.test(command) ? command.match(/^[°•π÷×¶∆£¢€¥®™✓_=|~!?#$%^&.+-,\/\\©^]/gi) : '#'
             const isCmd = command.startsWith(prefix)
-            const q = chats.slice(command.length + 1, chats.length)
-            const body = chats.startsWith(prefix) ? chats : ''
+            const q = body.slice(command.length + 1, body.length)
 
-            const isOwner = global['config'].ownerNumber.includes(sender)
+            // Console.log
+            if (isCmd && isGroup) console.log(color('[ COMMAND ]', 'yellow'), color(command), color('from', 'yellow'), color(pushname), color('in', 'yellow'), color(groupMetadata.subject))
+            if (isCmd && !isGroup) console.log(color('[ COMMAND ]', 'yellow'), color(command), color('from', 'yellow'), color(pushname), color('in', 'yellow'), color('Private Chat'))
 
-            const isImage = (type === 'imageMessage')
-            const isVideo = (type === 'videoMessage')
-            const isSticker = (type == 'stickerMessage')
-            const isMedia = isImage || isVideo || isSticker || (type == 'audioMessage') || (type == 'documentMessage')
-            const isQuotedImage = isQuotedMsg ? (quotedMsg.type === 'imageMessage') ? true : false : false
-            const isQuotedVideo = isQuotedMsg ? (quotedMsg.type === 'videoMessage') ? true : false : false
-            const isQuotedSticker = isQuotedMsg ? (quotedMsg.type === 'stickerMessage') ? true : false : false
-
-            if (isCmd) console.log(body)
             switch (command) {
-                case '>': {
-                    if (!isOwner) return
+                case '=>': {
+                    if (!userData.isOwner) return
                     try {
-                        let evaled = await eval(chats.slice(2))
+                        let evaled = eval(`(async() => {` + q + `})()`)
                         if (typeof evaled !== 'string') evaled = require('util').inspect(evaled)
-                        this.reply(from, `${evaled}`, msg)
-                    } catch (err) {
-                        this.reply(from, `${err}`, msg)
+                        this.reply(from, evaled, msg)
+                    } catch (e) {
+                        this.reply(from, `${e}`, msg)
                     }
                 }
                 break
             case prefix + 'menu':
             case prefix + 'help': {
-                let tmt = `1. ${prefix}sticker\n`
-                tmt += `Ga ada`
+                let tmt = `${prefix}sticker\n`
+                tmt += `${prefix}toimg\n`
+                tmt += `${prefix}ytmp4\n`
+                tmt += `${prefix}ytmp3\n`
+                tmt += `${prefix}tiktokwm\n`
+                tmt += `${prefix}tiktoknowm\n`
+                tmt += `${prefix}tiktokmusic\n`
+                tmt += `${prefix}tomp3\n`
+                tmt += `${prefix}toptt\n`
+                tmt += `${prefix}tourl\n`
+                tmt += `${prefix}pinterest\n`
+                tmt += `${prefix}igstalk\n`
                 this.reply(from, tmt, msg)
             }
             break
             case prefix + 's':
             case prefix + 'sticker':
             case prefix + 'stiker': {
-                if (isImage || isQuotedImage || isVideo && msg.message[msg.type].seconds < 10 || isQuotedVideo && quotedMsg[quotedMsg.type].seconds < 10) {
+                if (msg.isImage || msg.isQuotedImage || msg.isVideo && msg.message[msg.type].seconds < 10 || msg.isQuotedVideo && quotedMsg[quotedMsg.type].seconds < 10) {
                     const media = isQuotedMsg ? await quotedMsg.toBuffer() : await msg.toBuffer()
                     toSticker(media, global.config.packName, global.config.authName)
                         .then((res) => this.sendSticker(from, res, msg))
@@ -118,7 +134,7 @@ module.exports = {
             break
             case prefix + 'tovideo':
             case prefix + 'toimg': {
-                if (isQuotedSticker) {
+                if (msg.isQuotedSticker) {
                     let isAnimated = quotedMsg[quotedMsg.type].isAnimated
                     if (isAnimated) {
                         const media = await quotedMsg.toBuffer()
@@ -219,9 +235,22 @@ module.exports = {
             }
             break
             case prefix + 'tomp3': {
-                if (!isQuotedVideo) return this.reply(from, 'Reply video', msg)
+                if (!msg.isQuotedVideo) return this.reply(from, 'Reply video', msg)
                 let media = await quotedMsg.toBuffer()
                 await this.reply(from, global.db.mess.wait, msg)
+                toAudio(media)
+                    .then(res => this.sendAudio(from, res, msg))
+                    .catch(err => {
+                        console.log(err)
+                        this.reply(from, global.db.mess.error.api, msg)
+                    })
+            }
+            break
+            case prefix + 'toptt': {
+                if (!msg.isQuotedVideo && !msg.isQuotedAudio) return this.reply(from, 'Reply video / audio', msg)
+                let media = await quotedMsg.toBuffer()
+                await this.reply(from, global.db.mess.wait, msg)
+                if (isQuotedAudio) return this.sendAudio(from, media, msg, true)
                 toAudio(media)
                     .then(res => this.sendAudio(from, res, msg))
                     .catch(err => {
@@ -236,6 +265,40 @@ module.exports = {
                 await this.reply(from, global.db.mess.wait, msg)
                 api.pinterest(q)
                     .then(res => this.sendImage(from, res, '*Pencarian :* ' + q + '\n*URL :* ' + res, msg))
+                    .catch(err => {
+                        console.log(err)
+                        this.reply(from, global.db.mess.error.api, msg)
+                    })
+            }
+            break
+            case prefix + 'ss': {
+                if (!q) return this.reply(from, `Penggunaan ${command} url`, msg)
+                if (!isUrl(args[1])) return this.reply(from, 'Harap berikan link yang benar', msg)
+                await this.reply(from, global.db.mess.wait, msg)
+                this.sendImage(from, global.config.api + '/screenshot?apikey=' + global.config.apikey + '&url=' + args[1], '', msg)
+                    .catch(err => {
+                        console.log(err)
+                        this.reply(from, global.db.mess.error.api, msg)
+                    })
+            }
+            break
+            case prefix + 'tourl': {
+                if (!msg.isMedia && !msg.isQuotedMedia) return this.reply(from, 'Kirim / reply media', msg)
+                let media = msg.isQuotedMedia ? await quotedMsg.toBuffer() : await msg.toBuffer()
+                await this.reply(from, global.db.mess.wait, msg)
+                api.upload(media)
+                    .then(res => this.reply(from, res, msg))
+                    .catch(err => {
+                        console.log(err)
+                        this.reply(from, global.db.mess.error.api, msg)
+                    })
+            }
+            break
+            case prefix + 'igstalk': {
+                if (!q) return this.reply(from, `Penggunaan ${command} username`, msg)
+                await this.reply(from, global.db.mess.wait, msg)
+                api.igstalk(q)
+                    .then(res => this.sendImage(from, res.image, res.caption, msg))
                     .catch(err => {
                         console.log(err)
                         this.reply(from, global.db.mess.error.api, msg)

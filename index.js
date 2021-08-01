@@ -5,18 +5,19 @@ let {
 } = require("@adiwajshing/baileys");
 const qrcode = require("qrcode-terminal");
 const fs = require("fs");
-const cron = require("node-cron");
+const figlet = require("figlet");
 
 const func = require('./lib/function');
-const handler = require("./messages/chat-update");
+const handler = require("./messages/handlerMsg");
+const {
+    color
+} = require("./lib/color");
 
 let WAConnection = func.WAConnection(_WAConnection);
 
 // Global
 global['config'] = JSON.parse(fs.readFileSync('./config.json'));
 global['db'] = {};
-global['db']['category_menu'] = JSON.parse(fs.readFileSync('./database/category-menu.json'));
-global['db']['list_menu'] = JSON.parse(fs.readFileSync('./database/listmenu.json'));
 global['db']['mess'] = {
     "wait": "*_Tunggu permintaan anda sedang diproses_*",
     "error": {
@@ -34,15 +35,16 @@ global['db']['mess'] = {
 let conn;
 
 async function start(sesion, conn = new WAConnection) {
+    console.log(color(figlet.textSync('Example Bot', 'Larry 3D'), 'cyan'))
     conn.logger.level = 'warn';
-    console.log("Starting...");
+    console.log(color('[ SYSTEM ]', 'yellow'), color('Loading...'));
 
     // Menunggu QR
     conn.on('qr', qr => {
         qrcode.generate(qr, {
             small: true
         });
-        console.log("Scan QR");
+        console.log(color('[ SYSTEM ]', 'yellow'), color('Please scan qr code'));
     })
 
     // Restore Sesion
@@ -50,12 +52,12 @@ async function start(sesion, conn = new WAConnection) {
 
     // Mencoba menghubungkan
     conn.on('connecting', () => {
-        console.log('Connecting...')
+        console.log(color('[ SYSTEM ]', 'yellow'), color(' ⏳ Connecting...'));
     })
 
     // Konek
     conn.on('open', (json) => {
-        console.log('Connect')
+        console.log(color('[ SYSTEM ]', 'yellow'), color('Bot is now online!'));
     })
 
     // Write Sesion
@@ -63,22 +65,6 @@ async function start(sesion, conn = new WAConnection) {
         timeoutMs: 30 * 1000
     })
     fs.writeFileSync(sesion, JSON.stringify(conn.base64EncodedAuthInfo(), null, '\t'))
-
-    // Ya gitulah
-    conn.on('ws-close', () => {
-        console.log('Koneksi terputus, mencoba menghubungkan kembali..')
-    })
-
-    // Ntahlah
-    conn.on('close', async ({
-        reason,
-        isReconnecting
-    }) => {
-        console.log('Terputus, Alasan :' + reason + '\nMencoba mengkoneksi ulang :' + isReconnecting)
-        if (!isReconnecting) {
-            console.log('Connect To Phone Rejected and Shutting Down.')
-        }
-    })
 
     // Action Call
     conn.on('CB:action,,call', async json => {
@@ -98,6 +84,7 @@ async function start(sesion, conn = new WAConnection) {
             ]]
         }).then(() => {
             const callerid = json[2][0][1].from;
+            console.log(color('[ SYSTEM ]', 'yellow'), color('Bot on Incoming Call | '), color(callerid, 'cyan'));
             conn.sendMessage(callerid, `Maaf bot tidak menerima call`, MessageType.text)
                 .then(() => {
                     conn.blockUser(callerid, "add")
@@ -110,13 +97,5 @@ async function start(sesion, conn = new WAConnection) {
 
 start('session.json')
     .catch(console.log)
-
-cron.schedule('*/1 * * * *', () => {
-    fs.writeFileSync("./database/menu.json", JSON.stringify(global['db']['menu'], null, '\t'));
-    console.log('Saving menu!')
-}, {
-    scheduled: true,
-    timezone: "Asia/Jakarta"
-})
 
 exports.conn
