@@ -8,7 +8,7 @@ const fs = require("fs");
 const figlet = require("figlet");
 
 const func = require('./lib/function');
-const handler = require("./messages/handlerMsg");
+const handler = require("./messages/handler");
 const {
     color
 } = require("./lib/color");
@@ -33,8 +33,9 @@ global['db']['mess'] = {
 }
 
 let conn;
+conn = new WAConnection();
 
-async function start(sesion, conn = new WAConnection) {
+async function start(sesion) {
     console.log(color(figlet.textSync('Example Bot', 'Larry 3D'), 'cyan'))
     conn.logger.level = 'warn';
     console.log(color('[ SYSTEM ]', 'yellow'), color('Loading...'));
@@ -92,10 +93,14 @@ async function start(sesion, conn = new WAConnection) {
         })
     })
 
-    conn.on('chat-update', handler.chatUpdate)
+    conn.on('chat-update', async (msg) => {
+        handler.chatUpdate(conn, msg)
+    })
 }
 
 start('session.json')
     .catch(console.log)
 
-exports.conn
+module.exports = {
+    conn
+}

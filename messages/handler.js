@@ -32,19 +32,19 @@ const isUrl = (url) => {
 const ytIdRegex = /(?:http(?:s|):\/\/|)(?:(?:www\.|)youtube(?:\-nocookie|)\.com\/(?:shorts\/)?(?:watch\?.*(?:|\&)v=|embed\/|v\/)|youtu\.be\/)([-_0-9A-Za-z]{11})/
 
 module.exports = {
-    async chatUpdate(chat) {
+    async chatUpdate(conn, chat) {
         if (!chat.hasNewMessage) return
         let msg = chat.messages.all()[0]
         try {
             if (!msg.message) return // Mengskip message yang ga ada message
-            await func.serialize(this, msg) // biar ez
+            await func.serialize(conn, msg) // biar ez
             switch (msg.type) { // Update media
                 case MessageType.image:
                 case MessageType.video:
                 case MessageType.audio:
                 case MessageType.sticker:
                     if (!msg.fromMe) await func.sleep(1000)
-                    if (!msg.message[msg.type].url) await this.updateMediaMessage(msg);
+                    if (!msg.message[msg.type].url) await conn.updateMediaMessage(msg);
                     break
             }
             const {
@@ -75,6 +75,9 @@ module.exports = {
                 audio,
                 product
             } = MessageType
+
+            if (msg.isBaileys) return
+
             const args = body.split(' ')
             const command = body.toLowerCase().split(' ')[0] || ''
 
@@ -82,6 +85,11 @@ module.exports = {
             const isCmd = command.startsWith(prefix)
             const q = body.slice(command.length + 1, body.length)
 
+            const print = function (teks) {
+                if (typeof teks !== 'string') teks = require('util').inspect(teks)
+                teks = require('util').format(teks)
+                return conn.reply(from, teks, msg)
+            }
             // Console.log
             if (isCmd && isGroup) console.log(color('[ COMMAND ]', 'yellow'), color(command), color('from', 'yellow'), color(pushname), color('in', 'yellow'), color(groupMetadata.subject))
             if (isCmd && !isGroup) console.log(color('[ COMMAND ]', 'yellow'), color(command), color('from', 'yellow'), color(pushname), color('in', 'yellow'), color('Private Chat'))
@@ -92,9 +100,9 @@ module.exports = {
                     try {
                         let evaled = eval(`(async() => {` + q + `})()`)
                         if (typeof evaled !== 'string') evaled = require('util').inspect(evaled)
-                        this.reply(from, evaled, msg)
+                        conn.reply(from, evaled, msg)
                     } catch (e) {
-                        this.reply(from, `${e}`, msg)
+                        conn.reply(from, `${e}`, msg)
                     }
                 }
                 break
@@ -112,7 +120,7 @@ module.exports = {
                 tmt += `${prefix}tourl\n`
                 tmt += `${prefix}pinterest\n`
                 tmt += `${prefix}igstalk\n`
-                this.reply(from, tmt, msg)
+                conn.reply(from, tmt, msg)
             }
             break
             case prefix + 's':
@@ -121,14 +129,14 @@ module.exports = {
                 if (msg.isImage || msg.isQuotedImage || msg.isVideo && msg.message[msg.type].seconds < 10 || msg.isQuotedVideo && quotedMsg[quotedMsg.type].seconds < 10) {
                     const media = isQuotedMsg ? await quotedMsg.toBuffer() : await msg.toBuffer()
                     toSticker(media, global.config.packName, global.config.authName)
-                        .then((res) => this.sendSticker(from, res, msg))
+                        .then((res) => conn.sendSticker(from, res, msg))
                         .catch((err) => {
                             console.log(err)
-                            this.reply(from, `Maaf terjadi kesalahan`, msg)
+                            conn.reply(from, `Maaf terjadi kesalahan`, msg)
                         })
                 } else {
                     let tmt = `Kirim/reply image/video dengan caption ${command}`
-                    this.reply(from, tmt, msg)
+                    conn.reply(from, tmt, msg)
                 }
             }
             break
@@ -139,169 +147,169 @@ module.exports = {
                     if (isAnimated) {
                         const media = await quotedMsg.toBuffer()
                         webpToMp4(media)
-                            .then((res) => this.sendVideo(from, res, 'Nih kak', msg))
+                            .then((res) => conn.sendVideo(from, res, 'Nih kak', msg))
                             .catch((err) => {
                                 console.log(err)
-                                this.reply(from, `Maaf terjadi kesalahan`, msg)
+                                conn.reply(from, `Maaf terjadi kesalahan`, msg)
                             })
                     } else {
                         const media = await quotedMsg.toBuffer()
                         webpToPng(media)
                             .then((res) => {
-                                this.sendImage(from, res, 'Nih kak', msg)
+                                conn.sendImage(from, res, 'Nih kak', msg)
                             })
                             .catch((err) => {
                                 console.log(err)
-                                this.reply(from, `Maaf terjadi kesalahan`, msg)
+                                conn.reply(from, `Maaf terjadi kesalahan`, msg)
                             })
                     }
                 } else {
                     let tmt = `Reply sticker dengan caption ${command}`
-                    this.reply(from, tmt, msg)
+                    conn.reply(from, tmt, msg)
                 }
             }
             break
             case prefix + 'ytmp4': {
-                if (!q) return this.reply(from, `Penggunaan ${command} link youtube`, msg)
-                if (!ytIdRegex.test(args[1])) return this.reply(from, 'Harap berikan link yang benar', msg)
-                await this.reply(from, global.db.mess.wait, msg)
+                if (!q) return conn.reply(from, `Penggunaan ${command} link youtube`, msg)
+                if (!ytIdRegex.test(args[1])) return conn.reply(from, 'Harap berikan link yang benar', msg)
+                await conn.reply(from, global.db.mess.wait, msg)
                 await api.ytmp4(args[1])
                     .then(res => {
-                        this.sendImage(from, res.image, res.caption, msg)
-                        if (res.isLimit) return this.reply(from, 'Media terlalu besar silahkan download sendiri\n\n' + res.video, msg)
-                        this.sendVideo(from, res.video, '', msg)
+                        conn.sendImage(from, res.image, res.caption, msg)
+                        if (res.isLimit) return conn.reply(from, 'Media terlalu besar silahkan download sendiri\n\n' + res.video, msg)
+                        conn.sendVideo(from, res.video, '', msg)
                     })
                     .catch(err => {
                         console.log(err)
-                        this.reply(from, global.db.mess.error.api, msg)
+                        conn.reply(from, global.db.mess.error.api, msg)
                     })
             }
             break
             case prefix + 'ytmp3': {
-                if (!q) return this.reply(from, `Penggunaan ${command} link youtube`, msg)
-                if (!ytIdRegex.test(args[1])) return this.reply(from, 'Harap berikan link yang benar', msg)
-                await this.reply(from, global.db.mess.wait, msg)
+                if (!q) return conn.reply(from, `Penggunaan ${command} link youtube`, msg)
+                if (!ytIdRegex.test(args[1])) return conn.reply(from, 'Harap berikan link yang benar', msg)
+                await conn.reply(from, global.db.mess.wait, msg)
                 await api.ytmp3(args[1])
                     .then(res => {
-                        this.sendImage(from, res.image, res.caption, msg)
-                        if (res.isLimit) return this.reply(from, 'Media terlalu besar silahkan download sendiri\n\n' + res.video, msg)
-                        this.sendAudio(from, res.audio, msg)
+                        conn.sendImage(from, res.image, res.caption, msg)
+                        if (res.isLimit) return conn.reply(from, 'Media terlalu besar silahkan download sendiri\n\n' + res.video, msg)
+                        conn.sendAudio(from, res.audio, msg)
                     })
                     .catch(err => {
                         console.log(err)
-                        this.reply(from, global.db.mess.error.api, msg)
+                        conn.reply(from, global.db.mess.error.api, msg)
                     })
             }
             break
             case prefix + 'tiktok':
             case prefix + 'tiktoknowm': {
-                if (!q) return this.reply(from, `Penggunaan ${command} link tiktok`, msg)
-                if (!isUrl(args[1]) && !args[1].includes('tiktok.com')) return this.reply(from, 'Harap berikan link yang benar', msg)
-                await this.reply(from, global.db.mess.wait, msg)
+                if (!q) return conn.reply(from, `Penggunaan ${command} link tiktok`, msg)
+                if (!isUrl(args[1]) && !args[1].includes('tiktok.com')) return conn.reply(from, 'Harap berikan link yang benar', msg)
+                await conn.reply(from, global.db.mess.wait, msg)
                 await api.tiktok(args[1])
-                    .then(res => this.sendVideo(from, res.nowm, res.caption, msg))
+                    .then(res => conn.sendVideo(from, res.nowm, res.caption, msg))
                     .catch(err => {
                         console.log(err)
-                        this.reply(from, global.db.mess.error.api, msg)
+                        conn.reply(from, global.db.mess.error.api, msg)
                     })
             }
             break
             case prefix + 'tiktokwm': {
-                if (!q) return this.reply(from, `Penggunaan ${command} link tiktok`, msg)
-                if (!isUrl(args[1]) && !args[1].includes('tiktok.com')) return this.reply(from, 'Harap berikan link yang benar', msg)
-                await this.reply(from, global.db.mess.wait, msg)
+                if (!q) return conn.reply(from, `Penggunaan ${command} link tiktok`, msg)
+                if (!isUrl(args[1]) && !args[1].includes('tiktok.com')) return conn.reply(from, 'Harap berikan link yang benar', msg)
+                await conn.reply(from, global.db.mess.wait, msg)
                 await api.tiktok(args[1])
-                    .then(res => this.sendVideo(from, res.wm, res.caption, msg))
+                    .then(res => conn.sendVideo(from, res.wm, res.caption, msg))
                     .catch(err => {
                         console.log(err)
-                        this.reply(from, global.db.mess.error.api, msg)
+                        conn.reply(from, global.db.mess.error.api, msg)
                     })
             }
             break
             case prefix + 'tiktokmusic': {
-                if (!q) return this.reply(from, `Penggunaan ${command} link tiktok`, msg)
-                if (!isUrl(args[1]) && !args[1].includes('tiktok.com')) return this.reply(from, 'Harap berikan link yang benar', msg)
-                await this.reply(from, global.db.mess.wait, msg)
+                if (!q) return conn.reply(from, `Penggunaan ${command} link tiktok`, msg)
+                if (!isUrl(args[1]) && !args[1].includes('tiktok.com')) return conn.reply(from, 'Harap berikan link yang benar', msg)
+                await conn.reply(from, global.db.mess.wait, msg)
                 await api.tiktok(args[1])
                     .then(res => {
                         toAudio(res.nowm)
-                            .then(res => this.sendAudio(from, res, msg))
-                            .catch(err => this.reply(from, global.db.mess.error.api, msg))
+                            .then(res => conn.sendAudio(from, res, msg))
+                            .catch(err => conn.reply(from, global.db.mess.error.api, msg))
                     })
                     .catch(err => {
                         console.log(err)
-                        this.reply(from, global.db.mess.error.api, msg)
+                        conn.reply(from, global.db.mess.error.api, msg)
                     })
             }
             break
             case prefix + 'tomp3': {
-                if (!msg.isQuotedVideo) return this.reply(from, 'Reply video', msg)
+                if (!msg.isQuotedVideo) return conn.reply(from, 'Reply video', msg)
                 let media = await quotedMsg.toBuffer()
-                await this.reply(from, global.db.mess.wait, msg)
+                await conn.reply(from, global.db.mess.wait, msg)
                 toAudio(media)
-                    .then(res => this.sendAudio(from, res, msg))
+                    .then(res => conn.sendAudio(from, res, msg))
                     .catch(err => {
                         console.log(err)
-                        this.reply(from, global.db.mess.error.api, msg)
+                        conn.reply(from, global.db.mess.error.api, msg)
                     })
             }
             break
             case prefix + 'toptt': {
-                if (!msg.isQuotedVideo && !msg.isQuotedAudio) return this.reply(from, 'Reply video / audio', msg)
+                if (!msg.isQuotedVideo && !msg.isQuotedAudio) return conn.reply(from, 'Reply video / audio', msg)
                 let media = await quotedMsg.toBuffer()
-                await this.reply(from, global.db.mess.wait, msg)
-                if (isQuotedAudio) return this.sendAudio(from, media, msg, true)
+                await conn.reply(from, global.db.mess.wait, msg)
+                if (isQuotedAudio) return conn.sendAudio(from, media, msg, true)
                 toAudio(media)
-                    .then(res => this.sendAudio(from, res, msg))
+                    .then(res => conn.sendAudio(from, res, msg))
                     .catch(err => {
                         console.log(err)
-                        this.reply(from, global.db.mess.error.api, msg)
+                        conn.reply(from, global.db.mess.error.api, msg)
                     })
             }
             break
             case prefix + 'pinterest':
             case prefix + 'pin': {
-                if (!q) return this.reply(from, `Penggunaan ${command} query`, msg)
-                await this.reply(from, global.db.mess.wait, msg)
+                if (!q) return conn.reply(from, `Penggunaan ${command} query`, msg)
+                await conn.reply(from, global.db.mess.wait, msg)
                 api.pinterest(q)
-                    .then(res => this.sendImage(from, res, '*Pencarian :* ' + q + '\n*URL :* ' + res, msg))
+                    .then(res => conn.sendImage(from, res, '*Pencarian :* ' + q + '\n*URL :* ' + res, msg))
                     .catch(err => {
                         console.log(err)
-                        this.reply(from, global.db.mess.error.api, msg)
+                        conn.reply(from, global.db.mess.error.api, msg)
                     })
             }
             break
             case prefix + 'ss': {
-                if (!q) return this.reply(from, `Penggunaan ${command} url`, msg)
-                if (!isUrl(args[1])) return this.reply(from, 'Harap berikan link yang benar', msg)
-                await this.reply(from, global.db.mess.wait, msg)
-                this.sendImage(from, global.config.api + '/screenshot?apikey=' + global.config.apikey + '&url=' + args[1], '', msg)
+                if (!q) return conn.reply(from, `Penggunaan ${command} url`, msg)
+                if (!isUrl(args[1])) return conn.reply(from, 'Harap berikan link yang benar', msg)
+                await conn.reply(from, global.db.mess.wait, msg)
+                conn.sendImage(from, global.config.api + '/screenshot?apikey=' + global.config.apikey + '&url=' + args[1], '', msg)
                     .catch(err => {
                         console.log(err)
-                        this.reply(from, global.db.mess.error.api, msg)
+                        conn.reply(from, global.db.mess.error.api, msg)
                     })
             }
             break
             case prefix + 'tourl': {
-                if (!msg.isMedia && !msg.isQuotedMedia) return this.reply(from, 'Kirim / reply media', msg)
+                if (!msg.isMedia && !msg.isQuotedMedia) return conn.reply(from, 'Kirim / reply media', msg)
                 let media = msg.isQuotedMedia ? await quotedMsg.toBuffer() : await msg.toBuffer()
-                await this.reply(from, global.db.mess.wait, msg)
+                await conn.reply(from, global.db.mess.wait, msg)
                 api.upload(media)
-                    .then(res => this.reply(from, res, msg))
+                    .then(res => conn.reply(from, res, msg))
                     .catch(err => {
                         console.log(err)
-                        this.reply(from, global.db.mess.error.api, msg)
+                        conn.reply(from, global.db.mess.error.api, msg)
                     })
             }
             break
             case prefix + 'igstalk': {
-                if (!q) return this.reply(from, `Penggunaan ${command} username`, msg)
-                await this.reply(from, global.db.mess.wait, msg)
+                if (!q) return conn.reply(from, `Penggunaan ${command} username`, msg)
+                await conn.reply(from, global.db.mess.wait, msg)
                 api.igstalk(q)
-                    .then(res => this.sendImage(from, res.image, res.caption, msg))
+                    .then(res => conn.sendImage(from, res.image, res.caption, msg))
                     .catch(err => {
                         console.log(err)
-                        this.reply(from, global.db.mess.error.api, msg)
+                        conn.reply(from, 'User tidak ditemukan', msg)
                     })
             }
             }
