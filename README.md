@@ -75,12 +75,12 @@ npm install
 * Run Command Prompt as Administrator.
 * Jalankan perintah berikut::
 ```cmd
-> setx /m PATH "C:\ffmpeg\bin;%PATH%"
+setx /m PATH "C:\ffmpeg\bin;%PATH%"
 ```
 Jika berhasil, akan memberikanmu pesan seperti: `SUCCESS: specified value was saved`.
 * Sekarang setelah Anda menginstal FFmpeg, verifikasi bahwa itu berhasil dengan menjalankan perintah ini untuk melihat versi:
 ```cmd
-> ffmpeg -version
+ffmpeg -version
 ```
 
 
