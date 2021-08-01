@@ -123,7 +123,7 @@ module.exports = {
                 tmt += `${prefix}igdl\n`
                 tmt += `${prefix}flower\n`
                 tmt += `${prefix}write-text\n`
-                tmt += `${prefix}shadow-text\n`
+                tmt += `${prefix}shadow-text`
                 conn.reply(from, tmt, msg)
             }
             break
