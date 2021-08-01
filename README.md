@@ -65,7 +65,7 @@ npm install
 - Change packName Sticker on [this section](https://github.com/zennn08/example-bot/blob/47d703284ad198befe5b470fd4418df4a1e07a69/config.json#L2)
 - Change authorName Sticker on [this section](https://github.com/zennn08/example-bot/blob/47d703284ad198befe5b470fd4418df4a1e07a69/config.json#L3)
 - Change ownerNumber on [this section](https://github.com/zennn08/example-bot/blob/47d703284ad198befe5b470fd4418df4a1e07a69/config.json#L4)
-- Change Apikey on [this section](https://github.com/zennn08/example-bot/blob/47d703284ad198befe5b470fd4418df4a1e07a69/config.json#L9) and you buy / get apikey on [this section](https://justaqul.xyz)
+- Change Apikey on [this section](https://github.com/zennn08/example-bot/blob/47d703284ad198befe5b470fd4418df4a1e07a69/config.json#L9) and you can buy / get apikey on [this section](https://justaqul.xyz)
 
 
 ## Installing the FFmpeg for Windows
