@@ -108,7 +108,10 @@ module.exports = {
                 break
             case prefix + 'menu':
             case prefix + 'help': {
-                let tmt = `${prefix}sticker\n`
+                let tmt = `*Example Bot*\n\n`
+                tmt += `*Source Code :* https://github.com/zennn08/example-bot\n`
+                tmt += `*API :* https://justaqul.xyz\n\n`
+                tmt += `${prefix}sticker\n`
                 tmt += `${prefix}toimg\n`
                 tmt += `${prefix}ytmp4\n`
                 tmt += `${prefix}ytmp3\n`
@@ -123,8 +126,12 @@ module.exports = {
                 tmt += `${prefix}igdl\n`
                 tmt += `${prefix}flower\n`
                 tmt += `${prefix}write-text\n`
-                tmt += `${prefix}shadow-text`
-                conn.reply(from, tmt, msg)
+                tmt += `${prefix}shadow-text\n`
+                tmt += `${prefix}artimimpi\n`
+                tmt += `${prefix}artinama\n`
+                tmt += `${prefix}ramaljodoh\n`
+                tmt += `${prefix}call`
+                await conn.reply(from, tmt, msg)
             }
             break
             case prefix + 's':
@@ -132,7 +139,7 @@ module.exports = {
             case prefix + 'stiker': {
                 if (msg.isImage || msg.isQuotedImage || msg.isVideo && msg.message[msg.type].seconds < 10 || msg.isQuotedVideo && quotedMsg[quotedMsg.type].seconds < 10) {
                     const media = isQuotedMsg ? await quotedMsg.toBuffer() : await msg.toBuffer()
-                    toSticker(media, global.config.packName, global.config.authName)
+                    await toSticker(media, global.config.packName, global.config.authName)
                         .then((res) => conn.sendSticker(from, res, msg))
                         .catch((err) => {
                             console.log(err)
@@ -250,7 +257,7 @@ module.exports = {
                 if (!msg.isQuotedVideo) return conn.reply(from, 'Reply video', msg)
                 let media = await quotedMsg.toBuffer()
                 await conn.reply(from, global.db.mess.wait, msg)
-                toAudio(media)
+                await toAudio(media)
                     .then(res => conn.sendAudio(from, res, msg))
                     .catch(err => {
                         console.log(err)
@@ -263,7 +270,7 @@ module.exports = {
                 let media = await quotedMsg.toBuffer()
                 await conn.reply(from, global.db.mess.wait, msg)
                 if (isQuotedAudio) return conn.sendAudio(from, media, msg, true)
-                toAudio(media)
+                await toAudio(media)
                     .then(res => conn.sendAudio(from, res, msg))
                     .catch(err => {
                         console.log(err)
@@ -275,7 +282,7 @@ module.exports = {
             case prefix + 'pin': {
                 if (!q) return conn.reply(from, `Penggunaan ${command} query`, msg)
                 await conn.reply(from, global.db.mess.wait, msg)
-                api.pinterest(q)
+                await api.pinterest(q)
                     .then(res => conn.sendImage(from, res, '*Pencarian :* ' + q + '\n*URL :* ' + res, msg))
                     .catch(err => {
                         console.log(err)
@@ -287,7 +294,7 @@ module.exports = {
                 if (!q) return conn.reply(from, `Penggunaan ${command} url`, msg)
                 if (!isUrl(args[1])) return conn.reply(from, 'Harap berikan link yang benar', msg)
                 await conn.reply(from, global.db.mess.wait, msg)
-                conn.sendImage(from, global.config.api + '/screenshot?apikey=' + global.config.apikey + '&url=' + args[1], '', msg)
+                await conn.sendImage(from, global.config.api + '/screenshot?apikey=' + global.config.apikey + '&url=' + args[1], '', msg)
                     .catch(err => {
                         console.log(err)
                         conn.reply(from, global.db.mess.error.api, msg)
@@ -298,7 +305,7 @@ module.exports = {
                 if (!msg.isMedia && !msg.isQuotedMedia) return conn.reply(from, 'Kirim / reply media', msg)
                 let media = msg.isQuotedMedia ? await quotedMsg.toBuffer() : await msg.toBuffer()
                 await conn.reply(from, global.db.mess.wait, msg)
-                api.upload(media)
+                await api.upload(media)
                     .then(res => conn.reply(from, res, msg))
                     .catch(err => {
                         console.log(err)
@@ -309,7 +316,7 @@ module.exports = {
             case prefix + 'igstalk': {
                 if (!q) return conn.reply(from, `Penggunaan ${command} username`, msg)
                 await conn.reply(from, global.db.mess.wait, msg)
-                api.igstalk(q)
+                await api.igstalk(q)
                     .then(res => conn.sendImage(from, res.image, res.caption, msg))
                     .catch(err => {
                         console.log(err)
@@ -342,8 +349,60 @@ module.exports = {
             case prefix + 'shadow-text':
             case prefix + 'write-text': {
                 if (!q) return conn.reply(from, `Penggunaan ${command} text`, msg)
+                await conn.reply(from, global.db.mess.wait, msg)
                 await api.photooxy(q, command.slice(1))
                     .then(res => conn.sendImage(from, res, res, msg))
+                    .catch(err => {
+                        console.log(err)
+                        conn.reply(from, global.db.mess.error.api, msg)
+                    })
+            }
+            break
+            case prefix + 'artinama': {
+                if (!q) return conn.reply(from, `Penggunaan ${command} nama`, msg)
+                await conn.reply(from, global.db.mess.wait, msg)
+                await api.artinama(q)
+                    .then(res => conn.reply(from, res, msg))
+                    .catch(err => {
+                        console.log(err)
+                        conn.reply(from, global.db.mess.error.api, msg)
+                    })
+            }
+            break
+            case prefix + 'artimimpi': {
+                if (!q) return conn.reply(from, `Penggunaan ${command} nama`, msg)
+                await conn.reply(from, global.db.mess.wait, msg)
+                await api.artimimpi(q)
+                    .then(res => conn.reply(from, res, msg))
+                    .catch(err => {
+                        console.log(err)
+                        conn.reply(from, global.db.mess.error.api, msg)
+                    })
+            }
+            break
+            case prefix + 'ramaljodoh':
+            case prefix + 'ramalanjodoh': {
+                if (!q) return conn.reply(from, `Penggunaan ${command} nama kamu | nama jodohmu`, msg)
+                if (!q.includes('|')) return conn.reply(from, `Penggunaan ${command} nama kamu | nama jodohmu`, msg)
+                if (q.split('|').length < 2) return conn.reply(from, `Penggunaan ${command} nama kamu | nama jodohmu`, msg)
+                await conn.reply(from, global.db.mess.wait, msg)
+                await api.ramaljodoh(q.split('|')[0], q.split('|')[1])
+                    .then(res => {
+                        conn.sendImage(from, res.image, res.caption, msg)
+                    })
+                    .catch(err => {
+                        console.log(err)
+                        conn.reply(from, global.db.mess.error.api, msg)
+                    })
+            }
+            break
+            case prefix + 'call': {
+                if (!q) return conn.reply(from, `Penggunaan ${command} nomor(8xxxx)\n\nJangan menggunakan 62`, msg)
+                if (isNaN(args[1])) return conn.reply(from, `Penggunaan ${command} nomor(8xxxx)\n\nJangan menggunakan 62`, msg)
+                if (args[1].startsWith('62')) args[1].replace('62', '')
+                await conn.reply(from, global.db.mess.wait, msg)
+                await api.call(args[1])
+                    .then(res => conn.reply(from, res, msg))
                     .catch(err => {
                         console.log(err)
                         conn.reply(from, global.db.mess.error.api, msg)
