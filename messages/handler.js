@@ -269,7 +269,7 @@ module.exports = {
                 if (!msg.isQuotedVideo && !msg.isQuotedAudio) return conn.reply(from, 'Reply video / audio', msg)
                 let media = await quotedMsg.toBuffer()
                 await conn.reply(from, global.db.mess.wait, msg)
-                if (isQuotedAudio) return conn.sendAudio(from, media, msg, true)
+                if (msg.isQuotedAudio) return conn.sendAudio(from, media, msg, true)
                 await toAudio(media)
                     .then(res => conn.sendAudio(from, res, msg))
                     .catch(err => {
